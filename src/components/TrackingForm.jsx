@@ -1,6 +1,5 @@
 import { useState } from 'preact/hooks';
 
-// No cambian
 const STATUS_ORDER = ['CREADO', 'EN_TRANSITO', 'EN_ENTREGA', 'ENTREGADO'];
 const STATUS_LABELS = {
   CREADO: 'Procesado',
@@ -13,7 +12,6 @@ export default function TrackingForm() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // --- ¡NUEVO ESTADO! Para guardar el índice del paso seleccionado ---
   const [selectedStepIndex, setSelectedStepIndex] = useState(null);
 
   const handleSubmit = async (event) => {
@@ -22,7 +20,7 @@ export default function TrackingForm() {
     setLoading(true);
     setError('');
     setData(null);
-    setSelectedStepIndex(null); // Reseteamos la selección en una nueva búsqueda
+    setSelectedStepIndex(null);
     try {
       const response = await fetch(`https://gestion-backend-code4bi.onrender.com/api/seguimiento/estado/?codigo=${code}`);
       if (!response.ok) {
@@ -38,10 +36,8 @@ export default function TrackingForm() {
     }
   };
 
-  // --- Lógica para la barra de progreso (sin cambios) ---
   let currentStepIndex = -1;
   let hasErrorState = false;
-  // --- ¡NUEVO! Un mapa para acceder fácilmente a los detalles de cada estado ---
   const historyMap = new Map();
 
   if (data) {
@@ -50,19 +46,14 @@ export default function TrackingForm() {
       hasErrorState = true;
     } else {
       currentStepIndex = STATUS_ORDER.indexOf(latestStatusFromApi);
-      // Llenamos el mapa con los datos del historial para un acceso rápido
       data.historial.forEach(item => {
         historyMap.set(item.raw_estado, item);
       });
     }
   }
 
-  // --- ¡NUEVO! Función para manejar el clic en un paso ---
   const handleStepClick = (index) => {
-    // No permitir seleccionar pasos futuros
     if (index > currentStepIndex) return;
-
-    // Si se hace clic en el mismo paso, se deselecciona (efecto toggle)
     if (index === selectedStepIndex) {
       setSelectedStepIndex(null);
     } else {
@@ -70,14 +61,10 @@ export default function TrackingForm() {
     }
   };
 
-  // Obtenemos los detalles del paso seleccionado actualmente
-  const selectedStepDetails = selectedStepIndex !== null 
-    ? historyMap.get(STATUS_ORDER[selectedStepIndex]) 
-    : null;
+  const selectedStepDetails = selectedStepIndex !== null ? historyMap.get(STATUS_ORDER[selectedStepIndex]) : null;
 
   return (
     <div className="tracking-wrapper">
-      {/* El formulario no cambia */}
       <form onSubmit={handleSubmit} className="tracking-form">
         <div className="input-group">
           <input type="text" name="codigo" placeholder="Introduce tu código de seguimiento" required />
@@ -91,7 +78,6 @@ export default function TrackingForm() {
       
       {!loading && !error && data && (
         <div className="tracker-card">
-          {/* El header no cambia */}
           <div className="tracker-header">
             <div><span className="header-label">PEDIDO</span><span className="header-value">#{data.codigo}</span></div>
             <div><span className="header-label">Última Actualización</span><span className="header-value">{new Date(data.historial[0].fecha).toLocaleDateString('es-CO')}</span></div>
@@ -101,27 +87,32 @@ export default function TrackingForm() {
             <div className="error-state-message">...</div>
           ) : (
             <>
-              {/* Barra de Progreso - ¡AHORA CON CLICS! */}
               <div className="progress-bar-container">
                 {STATUS_ORDER.map((status, index) => (
                   <div key={status} className={`step ${index <= currentStepIndex ? 'completed' : ''} ${selectedStepIndex === index ? 'selected' : ''}`} onClick={() => handleStepClick(index)}>
                     <div className="node"></div>
-                    {index < STATUS_ORDER.length - 1 && <div className="line"></div>}
+                    {/* La línea solo se renderiza si no es el último paso */}
+                    {index < STATUS_ORDER.length - 1 && (
+                      // CORRECCIÓN CLAVE: La línea se completa si su índice es MENOR que el del paso actual
+                      <div className={`line ${index < currentStepIndex ? 'completed' : ''}`}></div>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {/* Etiquetas de Estado - ¡AHORA CON CLICS! */}
+              {/* Las etiquetas de estado no necesitan cambios de lógica */}
               <div className="status-labels">
                 {STATUS_ORDER.map((status, index) => (
                   <div key={status} className={`label-step ${index <= currentStepIndex ? 'completed' : ''} ${selectedStepIndex === index ? 'selected' : ''}`} onClick={() => handleStepClick(index)}>
-                    <div className="icon">{/* Iconos como antes */}</div>
+                    <div className="icon">
+                      {index === 0 && '📋'} {index === 1 && '📦'}
+                      {index === 2 && '🚚'} {index === 3 && '🏠'}
+                    </div>
                     <span>{STATUS_LABELS[status]}</span>
                   </div>
                 ))}
               </div>
 
-              {/* --- ¡NUEVO! Panel de Detalles --- */}
               <div className={`detail-panel ${selectedStepDetails ? 'visible' : ''}`}>
                 {selectedStepDetails && (
                   <>

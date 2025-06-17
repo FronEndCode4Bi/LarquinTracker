@@ -1,6 +1,7 @@
 ---
 // src/layouts/Layout.astro
-import '../styles/global.css';
+import "../styles/global.css";
+import bussinessIcon from "../img/businessIcon.webp";
 
 interface Props {
 	title: string;
@@ -19,39 +20,44 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
-    <header>
-      <nav>
-        <a href="/">Inicio</a>
-        <a href="/seguimiento">Seguimiento</a>
-      </nav>
-    </header>
+		<header>
+			<img src={bussinessIcon.src} alt="" />
+			<nav>
+				<a href="/">Inicio</a>
+				<a href="/seguimiento">Seguimiento</a>
+			</nav>
+		</header>
 		<main>
-      <slot /> </main>
+			<slot />
+		</main>
 	</body>
 </html>
 
 <style>
-  header {
-    background-color: var(--color-negro);
-    padding: 1rem 2rem;
-    border-bottom: 1px solid var(--color-gris);
-  }
-  nav {
-    display: flex;
-    gap: 1.5rem;
-    max-width: 1200px;
-    margin: auto;
-  }
-  nav a {
-    color: var(--color-blanco);
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  main {
-    flex-grow: 1; /* Asegura que el contenido principal ocupe el espacio disponible */
-    max-width: 1200px;
-    width: 100%;
-    margin: 2rem auto;
-    padding: 0 2rem;
-  }
+	header {
+		background-color: var(--color-blanco);
+		padding: 1rem 4rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	header img {
+		width: 10%;
+	}
+	nav {
+		display: flex;
+		gap: 1.5rem;
+	}
+	nav a {
+		color: var(--color-gris);
+		font-weight: 600;
+		font-size: 1rem;
+	}
+	main {
+		flex-grow: 1; /* Asegura que el contenido principal ocupe el espacio disponible */
+		max-width: 1200px;
+		width: 100%;
+		margin: 2rem auto;
+		padding: 0 2rem;
+	}
 </style>
