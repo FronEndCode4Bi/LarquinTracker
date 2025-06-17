@@ -1,0 +1,57 @@
+---
+// src/layouts/Layout.astro
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Sistema de seguimiento de servicios" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+	</head>
+	<body>
+    <header>
+      <nav>
+        <a href="/">Inicio</a>
+        <a href="/seguimiento">Seguimiento</a>
+      </nav>
+    </header>
+		<main>
+      <slot /> </main>
+	</body>
+</html>
+
+<style>
+  header {
+    background-color: var(--color-negro);
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--color-gris);
+  }
+  nav {
+    display: flex;
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: auto;
+  }
+  nav a {
+    color: var(--color-blanco);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  main {
+    flex-grow: 1; /* Asegura que el contenido principal ocupe el espacio disponible */
+    max-width: 1200px;
+    width: 100%;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+</style>

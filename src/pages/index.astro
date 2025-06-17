@@ -1,0 +1,41 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Inicio - Sistema de Seguimiento">
+  <div class="hero">
+    <h1>Bienvenido al Sistema de Seguimiento</h1>
+    <p>La solución confiable para rastrear el estado de tus servicios en tiempo real.</p>
+    <a href="/seguimiento" class="cta-button">Rastrear un envío ahora</a>
+  </div>
+</Layout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 4rem 1rem;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .hero p {
+    font-size: 1.25rem;
+    color: #b0b0b0;
+    margin-bottom: 2rem;
+  }
+  .cta-button {
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+  }
+  .cta-button:hover {
+    background-color: var(--color-primario-hover);
+    text-decoration: none;
+  }
+</style>
