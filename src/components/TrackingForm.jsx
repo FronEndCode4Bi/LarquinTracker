@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 
 const STATUS_ORDER = ['CREADO', 'EN_TRANSITO', 'EN_ENTREGA', 'ENTREGADO'];
 const STATUS_LABELS = {
@@ -13,6 +13,9 @@ export default function TrackingForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedStepIndex, setSelectedStepIndex] = useState(null);
+  const [fillWidth, setFillWidth] = useState('0%');
+  const [animatedNodes, setAnimatedNodes] = useState([false, false, false, false]);
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -21,6 +24,8 @@ export default function TrackingForm() {
     setError('');
     setData(null);
     setSelectedStepIndex(null);
+    setFillWidth('0%');
+    setAnimatedNodes([false, false, false, false]);
     try {
       const response = await fetch(`https://gestion-backend-code4bi.onrender.com/api/seguimiento/estado/?codigo=${code}`);
       if (!response.ok) {
@@ -52,6 +57,30 @@ export default function TrackingForm() {
     }
   }
 
+  // Selecciona por defecto el último estado alcanzado
+  useEffect(() => {
+    if (data && currentStepIndex >= 0) {
+      setSelectedStepIndex(currentStepIndex);
+      setFillWidth('0%');
+      setAnimatedNodes([false, false, false, false]);
+      setTimeout(() => {
+        setFillWidth(`${(currentStepIndex <= 0 ? 0 : (currentStepIndex / (STATUS_ORDER.length - 1)) * 100)}%`);
+        // Sincronizar animación de nodos con la barra
+        const DURATION = 1000; // Duración de la animación de la barra en ms (1s)
+        for (let i = 0; i <= currentStepIndex; i++) {
+          const t = DURATION * (i / (STATUS_ORDER.length - 1));
+          setTimeout(() => {
+            setAnimatedNodes(prev => {
+              const updated = [...prev];
+              updated[i] = true;
+              return updated;
+            });
+          }, t);
+        }
+      }, 100);
+    }
+  }, [data, currentStepIndex]);
+
   const handleStepClick = (index) => {
     if (index > currentStepIndex) return;
     if (index === selectedStepIndex) {
@@ -75,7 +104,11 @@ export default function TrackingForm() {
           </div>
         </form>
 
-        {loading && <p className="status-loading">Buscando...</p>}
+        {loading && (
+          <p className="status-loading">
+            <span className="spinner"></span> Buscando...
+          </p>
+        )}
         
         {!loading && !error && data && (
           <div className="tracker-card">
@@ -89,9 +122,11 @@ export default function TrackingForm() {
             ) : (
               <>
                 <div className="progress-bar-container">
+                  <div className="progress-bar-bg"></div>
+                  <div className="progress-bar-fill" style={{ width: fillWidth }}></div>
                   {STATUS_ORDER.map((status, index) => (
                     <div key={status} className={`step ${index <= currentStepIndex ? 'completed' : ''} ${selectedStepIndex === index ? 'selected' : ''}`} onClick={() => handleStepClick(index)}>
-                      <div className="node"></div>
+                      <div className={`node${animatedNodes[index] ? ' node-animated' : ''}`}></div>
                       {/* La línea solo se renderiza si no es el último paso */}
                       {index < STATUS_ORDER.length - 1 && (
                         // CORRECCIÓN CLAVE: La línea se completa si su índice es MENOR que el del paso actual
@@ -168,18 +203,22 @@ export default function TrackingForm() {
         /* Animaciones adicionales para mejor UX */
         .step {
           transition: transform 0.2s ease;
+          transform-origin: center;
         }
 
-        .step:hover {
-          transform: scale(1.05);
+        .node:hover {
+          transform: scale(1.15);
         }
 
         .node {
           transition: all 0.3s ease;
+          transform-origin: center;
+          position: relative;
+          z-index: 2;
         }
 
         .step.completed .node {
-          animation: pulse 0.6s ease-out;
+          /* La animación pulse solo se activa con la clase node-animated */
         }
 
         .step.selected .node {
@@ -187,18 +226,22 @@ export default function TrackingForm() {
           box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
         }
 
+        .node-animated {
+          animation: pulse 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         @keyframes pulse {
           0% {
             transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
           }
-          70% {
-            transform: scale(1.1);
-            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+          60% {
+            transform: scale(1.3);
+            box-shadow: 0 0 0 18px rgba(59, 130, 246, 0);
           }
           100% {
             transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
           }
         }
 
@@ -220,6 +263,63 @@ export default function TrackingForm() {
 
         .label-step:hover .icon {
           transform: scale(1.1);
+        }
+
+        /* Spinner animado para el estado de carga */
+        .spinner {
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          border: 3px solid #d1d5db;
+          border-top: 3px solid var(--color-primario);
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          margin-right: 8px;
+          vertical-align: middle;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar-container {
+          display: flex;
+          gap: -10px;
+          align-items: center;
+          position: relative;
+          margin: 32px 0 24px 0;
+        }
+
+        .progress-bar-bg {
+          position: absolute;
+          top: 50%;
+          left: 0;
+          right: 0;
+          height: 6px;
+          background: #e5e7eb;
+          border-radius: 3px;
+          transform: translateY(-50%);
+          z-index: 0;
+        }
+
+        .progress-bar-fill {
+          position: absolute;
+          top: 50%;
+          left: 0;
+          height: 6px;
+          background: var(--color-primario);
+          border-radius: 3px;
+          transform: translateY(-50%);
+          z-index: 1;
+          transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+          pointer-events: none;
+        }
+
+        .node {
+          transition: all 0.3s ease;
+          transform-origin: center;
+          position: relative;
+          z-index: 2;
         }
       `}</style>
     </>
